@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RR FLUID ENGINEERING PRIVATE LIMITED - Portal</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #f4f7f6; color: #333; }
+    header { background-color: #0d3b66; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 20px; }
+    header button { background: #e63946; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+    .container { padding: 20px; max-width: 1200px; margin: 0 auto; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .card h2 { font-size: 18px; margin-bottom: 15px; color: #0d3b66; border-bottom: 2px solid #f4f7f6; padding-bottom: 5px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    .btn { background: #0d3b66; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+    .btn:hover { background: #092847; }
+    .btn-danger { background: #e63946; }
+    .btn-success { background: #2a9d8f; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    table, th, td { border: 1px solid #ddd; }
+    th, td { padding: 12px; text-align: left; }
+    th { background-color: #f0f4f8; }
+    #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+    .login-box { background: white; padding: 30px; border-radius: 8px; width: 350px; text-align: center; }
+    .login-box h2 { margin-bottom: 10px; color: #0d3b66; }
+    .login-box h3 { margin-bottom: 20px; font-size: 14px; color: #666; }
+    .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab-btn { padding: 10px 20px; background: #e0e0e0; border: none; cursor: pointer; border-radius: 4px; }
+    .tab-btn.active { background: #0d3b66; color: white; }
+    .badge { padding: 5px 10px; border-radius: 4px; color: white; font-size: 12px; font-weight: bold; }
+    .bg-green { background-color: #2a9d8f; }
+    .bg-red { background-color: #e63946; }
+    .bg-orange { background-color: #f4a261; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 15px; }
+    .cal-day { padding: 15px; border-radius: 4px; text-align: center; background: #f9f9f9; border: 1px solid #eee; }
+    .cal-day.present { background: #2a9d8f; color: white; }
+    .cal-day.absent { background: #e63946; color: white; }
+    .cal-day.sunday { background: #f4a261; color: white; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="loginOverlay">
+    <div class="login-box">
+      <h2>RR FLUID ENGINEERING</h2>
+      <h3>PRIVATE LIMITED</h3>
+      <div class="form-group">
+        <input type="text" id="loginUsername" placeholder="User ID / Username">
+      </div>
+      <div class="form-group">
+        <input type="password" id="loginPassword" placeholder="Password">
+      </div>
+      <button class="btn" style="width: 100%;" onclick="login()">Login</button>
+      <p id="loginError" style="color: red; margin-top: 10px; font-size: 12px;"></p>
+    </div>
+  </div>
+
+  <div id="app" class="hidden">
+    <header>
+      <h1>RR FLUID ENGINEERING PVT LTD</h1>
+      <div>
+        <span id="userInfo" style="margin-right: 15px;"></span>
+        <button onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <div class="container">
+      <div id="adminNav" class="nav-tabs hidden">
+        <button class="tab-btn active" onclick="showTab('adminMembers')">Employee Management</button>
+        <button class="tab-btn" onclick="showTab('adminExpenses')">Approve Expenses</button>
+        <button class="tab-btn" onclick="showTab('adminAttendance')">Employee Reports</button>
+      </div>
+
+      <div id="empNav" class="nav-tabs hidden">
+        <button class="tab-btn active" onclick="showTab('empDashboard')">My Dashboard</button>
+        <button class="tab-btn" onclick="showTab('empExpenses')">My Expenses</button>
+      </div>
+
+      <div id="adminMembers" class="tab-content hidden">
+        <div class="card">
+          <h2>Add New Employee</h2>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="newEmpId" placeholder="User ID">
+            <input type="text" id="newEmpName" placeholder="Full Name">
+            <input type="password" id="newEmpPass" placeholder="Password">
+            <button class="btn" onclick="addEmployee()">Add Member</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>All Employees & Leave Status</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Name</th>
+                <th>Password</th>
+                <th>Available Paid Leaves</th>
+                <th>Sunday Work Count</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="employeeListTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="adminExpenses" class="tab-content hidden">
+        <div class="card">
+          <h2>Expense Requests</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Category</th>
+                <th>Amount (₹)</th>
+                <th>Details</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="adminExpenseTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="adminAttendance" class="tab-content hidden">
+        <div class="card">
+          <h2>Employee Attendance Overview</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Total Presents</th>
+                <th>Total Absents</th>
+                <th>Sundays Worked</th>
+              </tr>
+            </thead>
+            <tbody id="adminAttendanceSummary"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="empDashboard" class="tab-content hidden">
+        <div class="card" style="display: flex; justify-content: space-around; text-align: center;">
+          <div>
+            <h3>Available Paid Leaves</h3>
+            <h1 id="leaveBalanceDisplay" style="color: #2a9d8f;">0</h1>
+            <small>(2 Leaves added per month)</small>
+          </div>
+          <div>
+            <h3>Sundays Worked</h3>
+            <h1 id="sundayCountDisplay" style="color: #f4a261;">0</h1>
+            <small>(Extra Worked Days)</small>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Mark Today's Attendance</h2>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button class="btn btn-success" onclick="markAttendance('Present')">Mark Present</button>
+            <button class="btn btn-danger" onclick="markAttendance('Absent')">Mark Leave / Absent</button>
+            <button class="btn" style="background-color: #f4a261;" onclick="markAttendance('Sunday Work')">Mark Sunday Work</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>My Attendance Logs</h2>
+          <div id="calendarView" class="calendar-grid"></div>
+        </div>
+      </div>
+
+      <div id="empExpenses" class="tab-content hidden">
+        <div class="card">
+          <h2>Submit Expense Claim</h2>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="expCategory">
+              <option value="Travel">Travel</option>
+              <option value="Stay/Hotel">Stay / Hotel</option>
+              <option value="Food">Food / Meals</option>
+              <option value="Other">Other Wages / Expenses</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount (₹)</label>
+            <input type="number" id="expAmount" placeholder="Enter amount">
+          </div>
+          <div class="form-group">
+            <label>Description / Details</label>
+            <input type="text" id="expDetails" placeholder="Where did you go? Details...">
+          </div>
+          <button class="btn" onclick="submitExpense()">Submit Expense</button>
+        </div>
+
+        <div class="card">
+          <h2>My Expense History</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Amount (₹)</th>
+                <th>Details</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="empExpenseTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const defaultData = {
+      users: [
+        { id: 'admin', name: 'Admin', pass: 'admin123', role: 'admin' },
+        { id: 'emp101', name: 'Rahul Sharma', pass: '1234', role: 'employee', joinDate: '2026-07-01' }
+      ],
+      attendance: [],
+      expenses: []
+    };
+
+    let db = JSON.parse(localStorage.getItem('rr_fluid_db')) || defaultData;
+    let currentUser = null;
+
+    function saveData() {
+      localStorage.setItem('rr_fluid_db', JSON.stringify(db));
+    }
+
+    function login() {
+      const u = document.getElementById('loginUsername').value.trim();
+      const p = document.getElementById('loginPassword').value.trim();
+      
+      const user = db.users.find(x => x.id === u && x.pass === p);
+      if(user) {
+        currentUser = user;
+        document.getElementById('loginOverlay').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        document.getElementById('userInfo').innerText = `${user.name} (${user.role.toUpperCase()})`;
+        
+        if(user.role === 'admin') {
+          document.getElementById('adminNav').classList.remove('hidden');
+          showTab('adminMembers');
+          renderAdminViews();
+        } else {
+          document.getElementById('empNav').classList.remove('hidden');
+          showTab('empDashboard');
+          renderEmpViews();
+        }
+      } else {
+        document.getElementById('loginError').innerText = 'Invalid User ID or Password';
+      }
+    }
+
+    function logout() {
+      location.reload();
+    }
+
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.remove('hidden');
+      event.target.classList.add('active');
+    }
+
+    function calculateLeaves(emp) {
+      const join = new Date(emp.joinDate || '2026-01-01');
+      const now = new Date();
+      const monthsWorked = (now.getFullYear() - join.getFullYear()) * 12 + (now.getMonth() - join.getMonth()) + 1;
+      
+      const totalEarned = monthsWorked * 2;
+      const takenLeaves = db.attendance.filter(a => a.empId === emp.id && a.status === 'Absent').length;
+      
+      return totalEarned - takenLeaves;
+    }
+
+    function addEmployee() {
+      const id = document.getElementById('newEmpId').value.trim();
+      const name = document.getElementById('newEmpName').value.trim();
+      const pass = document.getElementById('newEmpPass').value.trim();
+
+      if(!id || !name || !pass) return alert('Please fill all fields');
+      if(db.users.some(u => u.id === id)) return alert('User ID already exists');
+
+      db.users.push({ id, name, pass, role: 'employee', joinDate: new Date().toISOString().split('T')[0] });
+      saveData();
+      renderAdminViews();
+      document.getElementById('newEmpId').value = '';
+      document.getElementById('newEmpName').value = '';
+      document.getElementById('newEmpPass').value = '';
+    }
+
+    function removeEmployee(id) {
+      if(confirm('Are you sure you want to remove this employee?')) {
+        db.users = db.users.filter(u => u.id !== id);
+        saveData();
+        renderAdminViews();
+      }
+    }
+
+    function updatePassword(id) {
+      const newPass = prompt("Enter new password for this employee:");
+      if(newPass) {
+        const u = db.users.find(x => x.id === id);
+        if(u) {
+          u.pass = newPass;
+          saveData();
+          renderAdminViews();
+          alert('Password updated successfully');
+        }
+      }
+    }
+
+    function renderAdminViews() {
+      const empTable = document.getElementById('employeeListTable');
+      empTable.innerHTML = '';
+      db.users.filter(u => u.role === 'employee').forEach(u => {
+        const remainingLeaves = calculateLeaves(u);
+        const sundayCount = db.attendance.filter(a => a.empId === u.id && a.status === 'Sunday Work').length;
+        
+        empTable.innerHTML += `
+          <tr>
+            <td>${u.id}</td>
+            <td>${u.name}</td>
+            <td>${u.pass}</td>
+            <td><strong style="color:green;">${remainingLeaves}</strong> Leaves</td>
+            <td><strong>${sundayCount}</strong> Sundays</td>
+            <td>
+              <button class="btn" onclick="updatePassword('${u.id}')">Reset Password</button>
+              <button class="btn btn-danger" onclick="removeEmployee('${u.id}')">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      const expTable = document.getElementById('adminExpenseTable');
+      expTable.innerHTML = '';
+      db.expenses.forEach(e => {
+        const emp = db.users.find(u => u.id === e.empId);
+        expTable.innerHTML += `
+          <tr>
+            <td>${emp ? emp.name : e.empId}</td>
+            <td>${e.category}</td>
+            <td>₹${e.amount}</td>
+            <td>${e.details}</td>
+            <td><span class="badge ${e.status === 'Approved' ? 'bg-green' : e.status === 'Rejected' ? 'bg-red' : 'bg-orange'}">${e.status}</span></td>
+            <td>
+              ${e.status === 'Pending' ? `
+                <button class="btn btn-success" onclick="updateExpenseStatus(${e.id}, 'Approved')">Approve</button>
+                <button class="btn btn-danger" onclick="updateExpenseStatus(${e.id}, 'Rejected')">Reject</button>
+              ` : 'No Action'}
+            </td>
+          </tr>
+        `;
+      });
+
+      const attTable = document.getElementById('adminAttendanceSummary');
+      attTable.innerHTML = '';
+      db.users.filter(u => u.role === 'employee').forEach(u => {
+        const presents = db.attendance.filter(a => a.empId === u.id && a.status === 'Present').length;
+        const absents = db.attendance.filter(a => a.empId === u.id && a.status === 'Absent').length;
+        const sundays = db.attendance.filter(a => a.empId === u.id && a.status === 'Sunday Work').length;
+        attTable.innerHTML += `
+          <tr>
+            <td>${u.name}</td>
+            <td>${presents} Days</td>
+            <td>${absents} Days</td>
+            <td>${sundays} Days</td>
+          </tr>
+        `;
+      });
+    }
+
+    function updateExpenseStatus(id, status) {
+      const exp = db.expenses.find(x => x.id === id);
+      if(exp) {
+        exp.status = status;
+        saveData();
+        renderAdminViews();
+      }
+    }
+
+    function markAttendance(status) {
+      const today = new Date().toISOString().split('T')[0];
+      const existing = db.attendance.find(a => a.empId === currentUser.id && a.date === today);
+
+      if(existing) {
+        alert('You have already marked attendance for today!');
+        return;
+      }
+
+      db.attendance.push({ empId: currentUser.id, date: today, status: status });
+      saveData();
+      renderEmpViews();
+      alert(`Attendance marked as ${status}`);
+    }
+
+    function submitExpense() {
+      const category = document.getElementById('expCategory').value;
+      const amount = document.getElementById('expAmount').value;
+      const details = document.getElementById('expDetails').value.trim();
+
+      if(!amount || !details) return alert('Please enter amount and details');
+
+      db.expenses.push({
+        id: Date.now(),
+        empId: currentUser.id,
+        category,
+        amount,
+        details,
+        status: 'Pending'
+      });
+
+      saveData();
+      renderEmpViews();
+      document.getElementById('expAmount').value = '';
+      document.getElementById('expDetails').value = '';
+      alert('Expense claim submitted for Admin approval.');
+    }
+
+    function renderEmpViews() {
+      document.getElementById('leaveBalanceDisplay').innerText = calculateLeaves(currentUser);
+      const sundayCount = db.attendance.filter(a => a.empId === currentUser.id && a.status === 'Sunday Work').length;
+      document.getElementById('sundayCountDisplay').innerText = sundayCount;
+
+      const cal = document.getElementById('calendarView');
+      cal.innerHTML = '';
+      const logs = db.attendance.filter(a => a.empId === currentUser.id);
+
+      if(logs.length === 0) {
+        cal.innerHTML = '<p>No attendance records found.</p>';
+      } else {
+        logs.forEach(l => {
+          let cssClass = 'present';
+          if(l.status === 'Absent') cssClass = 'absent';
+          if(l.status === 'Sunday Work') cssClass = 'sunday';
+
+          cal.innerHTML += `
+            <div class="cal-day ${cssClass}">
+              <div><strong>${l.date}</strong></div>
+              <div>${l.status}</div>
+            </div>
+          `;
+        });
+      }
+
+      const expTable = document.getElementById('empExpenseTable');
+      expTable.innerHTML = '';
+      db.expenses.filter(e => e.empId === currentUser.id).forEach(e => {
+        expTable.innerHTML += `
+          <tr>
+            <td>${e.category}</td>
+            <td>₹${e.amount}</td>
+            <td>${e.details}</td>
+            <td><span class="badge ${e.status === 'Approved' ? 'bg-green' : e.status === 'Rejected' ? 'bg-red' : 'bg-orange'}">${e.status}</span></td>
+          </tr>
+        `;
+      });
+    }
+  </script>
+</body>
+</html>
